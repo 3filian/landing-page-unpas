@@ -1,5 +1,6 @@
 // Local module
 const users = require("./utils/users");
+const authTokens = require('./utils/auth-tokens')
 
 // Express
 const express = require("express");
@@ -49,6 +50,7 @@ app.get("/register", (req, res) => {
   });
 });
 
+const crypto = require("crypto");
 const getHashedPassword = (password) => {
   const sha256 = crypto.createHash("sha256");
   const hash = sha256.update(password).digest("base64");
@@ -57,8 +59,9 @@ const getHashedPassword = (password) => {
 
 app.post(
   "/register",
+  // Express validator
   [
-    check("email", "Email is not valid!").isEmail(),
+    check("email", "Email is not valid").isEmail(),
     body("email").custom((value) => {
       const duplicate = users.checkDuplicate(value);
       if (duplicate) {
@@ -67,8 +70,9 @@ app.post(
       return true;
     }),
     check("password", "Password at least 8 characters in length.").isLength({ min: 8 }),
-    body("confirmPassword").custom((value) => {
-      if (value != req.body.password) {
+    // check("confirmPassword", "Password at least 8 characters in length.").isLength({ min: 8 }),
+    body("confirmPassword").custom((value, { req }) => {
+      if (value !== req.body.password) {
         throw new Error("Password confirmation does not match password");
       }
       return true;
@@ -85,7 +89,7 @@ app.post(
         errors: errors.array(),
       });
     } else {
-      users.addUser({ email, firstName, lastName, password: hashedPassword });
+      users.addUser({ firstName, lastName, email, password: hashedPassword });
       res.render("login", {
         layout: "layouts/main",
         title: "Log In",
@@ -95,5 +99,106 @@ app.post(
     }
   }
 );
+
+const generateAuthToken = () => {
+  return crypto.randomBytes(30).toString("hex");
+};
+
+
+// This will hold the users and authToken related to users
+// const dataTokens = authTokens.loadFile();
+const dataTokens = {};
+
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+  const hashedPassword = getHashedPassword(password);
+  const file = users.loadFile();
+
+  const user = file.find((user) => {
+    return user.email === email && hashedPassword === user.password;
+  });
+
+  if (user) {
+    const authToken = generateAuthToken();
+    const time = authTokens.getTime();
+    user.time = time;
+
+    // Store authentication token
+    dataTokens[authToken] = user;
+    // authTokens.saveTokens(dataTokens);
+
+    // Setting the auth token in cookies
+    res.cookie("AuthToken", authToken, { expires: new Date(Date.now() + 900000) });
+
+    // Redirect user to the user page
+    res.redirect("/user");
+  } else {
+    res.render("login", {
+      layout: "layouts/main",
+      title: "Log In",
+      message: "Invalid username or password",
+      messageClass: "alert-danger",
+    });
+  }
+});
+
+app.use((req, res, next) => {
+  // Get auth token from the cookies
+  const authToken = req.cookies["AuthToken"];
+
+  // Inject the user to the request
+  req.user = dataTokens[authToken];
+  req.token = authToken;
+
+  next();
+});
+
+app.get("/user", (req, res) => {
+  if (req.user) {
+    const dataUser = req.user;
+    res.setHeader("Content-Type", "text/html");
+    res.render("index", {
+      user: req.user,
+      token: req.token,
+      tokens: dataTokens,
+      layout: "layouts/main",
+      title: "Home User",
+    });
+    // console.log(req.user);
+  } else {
+    res.render("login", {
+      layout: "layouts/main",
+      title: "Log In",
+      message: "Please login to continue",
+      messageClass: "alert-danger",
+    });
+  }
+});
+
+const requireAuth = (req, res, next) => {
+  if (req.user) {
+    next();
+  } else {
+    res.render("login", {
+      layout: "layouts/main",
+      title: "Log In",
+      message: "Please login to continue",
+      messageClass: "alert-danger",
+    });
+  }
+};
+
+app.get("/user", requireAuth, (req, res) => {
+  res.render("index", {
+    layout: "layouts/main",
+    title: "Home User",
+  });
+});
+
+app.get("/logout", (req, res) => {
+  const token = req.token;
+  delete dataTokens[token];
+  res.redirect("/");
+});
 
 app.listen(port, () => console.log(`Listening from port ${port}`));

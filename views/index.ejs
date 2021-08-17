@@ -1,5 +1,6 @@
 <head>
   <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Viga&display=swap" rel="stylesheet">
 </head>
 <body>
   <main>
@@ -16,12 +17,50 @@
             <a class="nav-link" href="#">Pricing</a>
             <a class="nav-link" href="#">Features</a>
             <a class="nav-link" href="#">About</a>
-            <a class="btn btn-primary tombol" href="/login">Join Us</a>
+            <% if (typeof user != 'undefined') { %>
+              <div class="user-action">
+                <div class="dropdown">
+                  <button class="btn btn-secondary dropdown-toggle" style="background-color: transparent !important; border: none; outline: none !important; padding: 8px !important;" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                    <%= user.firstName + ' ' + user.lastName %>
+                  </button>
+                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                    <li class="" style="padding: 10px; display: inline-block">
+                      <a id="profile" class="dropdown-item px-1" href="#" style="color: black; margin: 0" data-bs-toggle="modal" data-bs-target="#profileModal">Profile</a>
+                    </li>
+                    <li style="padding: 10px; display: inline-block">
+                      <a id="logout" class="dropdown-item px-1" href="/logout" style="color: black; margin: 0">Log Out</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            <% } else {%>
+              <a class="btn btn-primary tombol" href="/login">Join Us</a>
+            <% } %> 
           </div>
         </div>
       </div>
     </nav>
     <!-- Akhir Navbar -->
+
+    <!-- Profile Modal -->
+    <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="profileModalLabel"><% if (typeof user != 'undefined') { %> <%= user.firstName + ' ' + user.lastName %> <% } %></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body d-flex flex-column">
+            <span>First Name: <% if (typeof user != 'undefined') { %> <%= user.firstName %> <% } %> </span>
+            <span>Last Name: <% if (typeof user != 'undefined') { %> <%= user.firstName %> <% } %> </span>
+            <span>Email: <% if (typeof user != 'undefined') { %> <%= user.email %> <% } %> </span>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Jumbotron -->
     <div class="jumbotron jumbotron-fluid">

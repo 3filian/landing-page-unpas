@@ -23,14 +23,14 @@ const saveUsers = function (users) {
   fs.writeFileSync(filePath, JSON.stringify(users));
 };
 
-// check email duplicate
-const checkDuplicate = function (email) {
+// Check email exist
+const checkDuplicate = (email) => {
   const users = loadFile();
   return users.find((user) => user.email === email);
 };
 
 // add user
-const addUser = function (user) {
+const addUser = (user) => {
   const users = loadFile();
   users.push(user);
   saveUsers(users);
