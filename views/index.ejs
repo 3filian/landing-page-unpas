@@ -28,13 +28,13 @@
                       <a id="profile" class="dropdown-item px-1" href="#" style="color: black; margin: 0" data-bs-toggle="modal" data-bs-target="#profileModal">Profile</a>
                     </li>
                     <li style="padding: 10px; display: inline-block">
-                      <a id="logout" class="dropdown-item px-1" href="/logout" style="color: black; margin: 0">Log Out</a>
+                      <a id="logout" class="dropdown-item px-1" href="/account/logout" style="color: black; margin: 0">Log Out</a>
                     </li>
                   </ul>
                 </div>
               </div>
             <% } else {%>
-              <a class="btn btn-primary tombol" href="/login">Join Us</a>
+              <a class="btn btn-primary tombol" href="/account/login">Join Us</a>
             <% } %> 
           </div>
         </div>
@@ -52,15 +52,30 @@
           </div>
           <div class="modal-body d-flex flex-column">
             <span>First Name: <% if (typeof user != 'undefined') { %> <%= user.firstName %> <% } %> </span>
-            <span>Last Name: <% if (typeof user != 'undefined') { %> <%= user.firstName %> <% } %> </span>
+            <span>Last Name: <% if (typeof user != 'undefined') { %> <%= user.lastName %> <% } %> </span>
             <span>Email: <% if (typeof user != 'undefined') { %> <%= user.email %> <% } %> </span>
+            <div class="collapse" id="changeData">
+              <div class="card card-body">
+                <form method="POST" action="/user?_method=PUT">
+                  <div class="mb-3 form">
+                    <input type="text" class="form-control" id="firstName" placeholder="First name" name="firstName" onkeyup='saveValue(this);' required />
+                  </div>
+                  <div class="mb-3 form">
+                    <input type="text" class="form-control" id="lastName" placeholder="Last Name" name="lastName" onkeyup='saveValue(this);' required />
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100" style="border-radius: 10px" data-bs-dismiss="modal">Submit</button>
+                </form>
+              </div>
+            </div>
           </div>
           <div class="modal-footer">
+            <button class="btn btn-primary" data-bs-toggle="collapse" href="#changeData" role="button" aria-expanded="false" aria-controls="changeData">Change Data</button>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           </div>
         </div>
       </div>
     </div>
+
 
     <!-- Jumbotron -->
     <div class="jumbotron jumbotron-fluid">
